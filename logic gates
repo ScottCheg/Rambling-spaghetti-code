@@ -1,0 +1,40 @@
+while True:
+	gate = input("Enter logic gate type (NOT, AND, OR, XOR ): ")
+	if gate == ('NOT' or 'AND' or 'OR' or 'XOR'):
+		break
+	else:
+		print("Invalid logic gate \n")
+
+digits = intput("Enter entry digits: ")
+if gate.upper() == 'NOT':
+	if digit == '1':
+		print('0')
+	elif digit == '0':
+		print('1')
+	else:
+		print('Invaid number')
+
+if gate.upper() == 'AND':
+	if digit == '10' or '01' or '00':
+		print('0')
+	elif digit == '11':
+		print('1')
+	else:
+		print('Invaid number')
+
+if gate.upper() == 'OR':
+	if int(digit) == 0 :
+		print('0')
+	elif digit == '01' or '10' or '11':
+		print('1')
+	else:
+		print('Invaid number')
+
+if gate.upper() == 'XOR':
+	if digit == '00' or '11':
+		print('0')
+	elif digit == '01' or '10':
+		print('1')
+	else:
+		print('Invaid number')
+
