@@ -1,0 +1,27 @@
+class BBC():
+    def __init__(self, colour = 'unknown', size = 'unknown', taste = 'unknown'):
+        self.colour = colour
+        self.size = size
+        self.taste = taste
+
+    def print_description(self):
+        print("""
+        The colour is""",self.colour,"""I am of""",self.size,"""size
+        and it is usuallly described as""", self.taste)
+
+class Tropical(BBC):
+    def __init__(self, colour = 'unknown', size = 'unknown', taste = 'unknown'):
+        super().__init__(taste='sweet')
+
+class Citrus(BBC):
+    def __init__(self, colour = 'unknown', size = 'unknown', taste = 'unknown', Bitter_level = 'unknown'):
+        self.Bitter_level = Bitter_level
+        super().__init__(taste = 'bitter')
+
+    def print_description(self):
+        print("""
+        The colour is""",self.colour,"""I am of""",self.size,""" size
+        and it is usuallly described as""", self.taste,"""" with a bitterness of""",self.Bitter_level)
+
+mango = Tropical('Red','Medium')
+mango.print_description()
