@@ -1,4 +1,4 @@
-class BBC():
+class fruit():
     def __init__(self, colour = 'unknown', size = 'unknown', taste = 'unknown'):
         self.colour = colour
         self.size = size
