@@ -1,0 +1,153 @@
+import sys
+import pygame
+from pygame.locals import *
+
+pygame.init()
+surface = pygame.display.set_mode((640, 480))
+clock = pygame.time.Clock()
+surfrect = surface.get_rect()
+
+class Ring():
+    _before = None
+    def __init__(self, size = 1, colour = (0,0,0)):
+        rect = pygame.Rect((0, 0), (16*size, 16))
+        rect.center = (surfrect.w / 2, surfrect.h / 2)
+        self.Rect = rect
+        self.Before = rect
+        self.colour = colour
+        self.size = size
+    
+    def touched(self, pos):
+        return self.Rect.collidepoint(pos)
+
+    def draw(self):
+        surface.fill(self.colour, self.Rect)
+
+    def move(self, pos):
+        self.Rect.move_ip(pos)
+        self.Rect.clamp_ip(surfrect)
+
+    def start_move(self):
+        self.before = self.Rect.center
+
+    def cancel_move(self):
+        if self.before is not None:
+            self.Rect.center = self.before
+
+    def complete_move(self):
+        self.before = None
+
+class Tower():
+    def __init__(self, colour, num):
+        box = pygame.Rect((0,0), (5, 18*8))
+        box.center = (surfrect.w/4 * num , surfrect.h / 2)
+        self.Rect = box
+        self.num_rings = 0
+        self.colour = colour
+        self.rings = []
+
+    def add_ring(self, ring):
+        ring.Rect.center = self.Rect.center
+        ring.Rect.bottom = self.Rect.bottom - ((ring.Rect.h+2)*self.num_rings)
+        self.num_rings += 1
+        self.rings.append(ring)
+
+    def remove_ring(self, ring):
+        self.num_rings -= 1
+        self.rings.remove(ring)
+
+    def collides(self, ring):
+        return ring.Rect.colliderect(self.Rect)
+
+    def draw(self):
+        surface.fill(self.colour, self.Rect)
+
+    def draw_rings(self):
+        for ring in self.rings:
+            ring.draw()
+
+    def test_touch(self, pos):
+        if len(self.rings) == 0:
+            return None
+        ring = self.rings[-1]
+        if ring.touched(pos):
+            return ring
+
+    def can_drop(self, ring):
+        if len(self.rings) == 0:
+            return True
+        top = self.rings[-1]
+        if top.size > ring.size:
+            return True
+        return False
+
+class Game():
+    _touched = None
+    _palette = [(255,0,0),(0,255,0),(0,0,255),(255,255,0),(0,255,255),(255,128,0),(128,255,0),(0,128,255)]
+    def __init__(self, num_rings = 3):
+        self.num_rings = num_rings
+
+        tower1 = Tower((255,255,255), 1)
+        tower2 = Tower((255,255,255), 2)
+        tower3 = Tower((255,255,255), 3)
+
+        for i in range(num_rings):
+            tower1.add_ring(Ring(num_rings-i, self._palette[i]))
+
+        self.towers = [tower1, tower2, tower3]
+
+    def draw(self):
+        for tower in self.towers:
+            tower.draw()
+        for tower in self.towers:
+            tower.draw_rings()
+
+    def remove_ring(self, ring):
+        for tower in self.towers:
+            if ring in tower.rings:
+                tower.remove_ring(ring)
+
+    def mouse_down(self, pos):
+        for tower in self.towers:
+            ring = tower.test_touch(pos)
+            if ring is not None:
+                self._touched = ring 
+                self._touched.start_move()
+                pygame.mouse.get_rel()
+                break
+    
+    def mouse_up(self):
+        if self._touched is not None:
+            touching = False
+            for tower in self.towers:
+                if tower.collides(self._touched):   
+                    if tower.can_drop(self._touched):
+                        self.remove_ring(self._touched)    
+                        tower.add_ring(self._touched)
+                        touching = True
+
+            if not touching:
+                self._touched.cancel_move()
+            self._touched = None
+
+    def loop(self):
+        if self._touched is not None:
+            self._touched.move(pygame.mouse.get_rel())
+
+
+game = Game(8)
+while True:
+    for ev in pygame.event.get():
+        if ev.type == QUIT:
+            pygame.quit()
+        elif ev.type == pygame.MOUSEBUTTONDOWN:
+            game.mouse_down(ev.pos)
+        elif ev.type == pygame.MOUSEBUTTONUP:
+            game.mouse_up()
+
+    clock.tick(60)
+    surface.fill((0, 0, 0))
+    game.loop()
+
+    game.draw()
+    pygame.display.flip()
