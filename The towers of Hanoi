@@ -1,6 +1,31 @@
 import sys
 import pygame
 from pygame.locals import *
+from tkinter import *
+import tkinter.font as font
+root = Tk()
+
+root.geometry('500x128')
+palette2 = ['Red','Blue','Green', 'Yellow', 'orange', 'purple']
+
+def on_click(text):
+    global numberofrings
+    numberofrings = text
+    root.destroy()
+
+def makeButton(xval,yval, text, colour):
+    bgcol = palette2[i]
+    button = Button(root, text = ' '+str(text)+' ', font=('impact',20), command = lambda:  on_click(text), bg = bgcol)
+    button.place(x= xval, y= yval, anchor='center')
+
+myLabel = Label(root, text='How many rings do you want to start with?:', font=("impact", 20))
+myLabel.pack()
+for i in range(6):
+    makeButton(120+50*i, 80, i+3, i)
+root.resizable(False, False)
+root.mainloop()
+
+#########################################
 
 pygame.init()
 surface = pygame.display.set_mode((640, 480))
@@ -134,8 +159,7 @@ class Game():
         if self._touched is not None:
             self._touched.move(pygame.mouse.get_rel())
 
-
-game = Game(8)
+game = Game(numberofrings)
 while True:
     for ev in pygame.event.get():
         if ev.type == QUIT:
@@ -151,3 +175,7 @@ while True:
 
     game.draw()
     pygame.display.flip()
+
+
+    #cheeck for win
+    # move counter 
