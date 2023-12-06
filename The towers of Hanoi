@@ -1,11 +1,12 @@
-import sys
-import pygame
+import sys, pygame, time
 from pygame.locals import *
 from tkinter import *
 import tkinter.font as font
-root = Tk()
 
-root.geometry('500x128')
+root = Tk()
+root.geometry('500x180')
+root.title('Ring selection:')
+root.resizable(False, False)
 palette2 = ['Red','Blue','Green', 'Yellow', 'orange', 'purple']
 
 def on_click(text):
@@ -18,11 +19,26 @@ def makeButton(xval,yval, text, colour):
     button = Button(root, text = ' '+str(text)+' ', font=('impact',20), command = lambda:  on_click(text), bg = bgcol)
     button.place(x= xval, y= yval, anchor='center')
 
-myLabel = Label(root, text='How many rings do you want to start with?:', font=("impact", 20))
+myLabel = Label(root, text='Welcome to the Towers of Hanoi,\nHow many rings do you want to start with?:', font=("impact", 20))
 myLabel.pack()
 for i in range(6):
-    makeButton(120+50*i, 80, i+3, i)
-root.resizable(False, False)
+    makeButton(120+50*i, 120, i+3, i)    
+help = Button(root, text= 'Help', command = lambda: helpme())
+help.place(x =455, y=150)
+
+def helpme():
+    roothelp = Tk()
+    roothelp.geometry('1000x140')
+    roothelp.title('Help')
+    roothelp.resizable(False, False)
+    texthelptext = """\n The towers of Hanoi is a puzzle where you must move all the rings on the first tower to the last.
+However: you can only place smaller rings on larger ones, and can only take rings from the top of the tower.
+    """
+    myLabel = Label(roothelp, text=texthelptext, font=('calibri', 15))
+    begin = Button(roothelp, text = ' Begin ', font=('calibri', 15), command = lambda: roothelp.destroy())
+    begin.place(x=500,y=80)
+    myLabel.pack()
+
 root.mainloop()
 
 #########################################
@@ -31,6 +47,17 @@ pygame.init()
 surface = pygame.display.set_mode((640, 480))
 clock = pygame.time.Clock()
 surfrect = surface.get_rect()
+
+def theywon():
+    pygame.quit()
+    root = Tk()
+    root.geometry('960x540')
+    root.title('WOO HOO')
+
+    myLabel = Label(root, text='Congratulations,\n you won!', font=("impact", 50))
+    myLabel.place(y = 150, x = 250)
+    root.resizable(False, False)
+    root.mainloop()
 
 class Ring():
     _before = None
@@ -64,7 +91,7 @@ class Ring():
 
 class Tower():
     def __init__(self, colour, num):
-        box = pygame.Rect((0,0), (5, 18*8))
+        box = pygame.Rect((0,0), (10, 144))
         box.center = (surfrect.w/4 * num , surfrect.h / 2)
         self.Rect = box
         self.num_rings = 0
@@ -108,7 +135,8 @@ class Tower():
 
 class Game():
     _touched = None
-    _palette = [(255,0,0),(0,255,0),(0,0,255),(255,255,0),(0,255,255),(255,128,0),(128,255,0),(0,128,255)]
+    _palette = [(255,0,0),(0,255,0),(0,0,255),(255,255,0),
+               (0,255,255),(255,128,0),(128,255,0),(0,128,255)]
     def __init__(self, num_rings = 3):
         self.num_rings = num_rings
 
@@ -141,7 +169,7 @@ class Game():
                 pygame.mouse.get_rel()
                 break
     
-    def mouse_up(self):
+    def mouse_up(self): 
         if self._touched is not None:
             touching = False
             for tower in self.towers:
@@ -155,19 +183,28 @@ class Game():
                 self._touched.cancel_move()
             self._touched = None
 
+        if self.towers[-1].num_rings == numberofrings:
+            theywon()
+
     def loop(self):
         if self._touched is not None:
             self._touched.move(pygame.mouse.get_rel())
+try:
+    game = Game(numberofrings)
+except NameError:
+    exit() 
 
-game = Game(numberofrings)
 while True:
-    for ev in pygame.event.get():
-        if ev.type == QUIT:
-            pygame.quit()
-        elif ev.type == pygame.MOUSEBUTTONDOWN:
-            game.mouse_down(ev.pos)
-        elif ev.type == pygame.MOUSEBUTTONUP:
-            game.mouse_up()
+    try:
+        for ev in pygame.event.get():
+            if ev.type == QUIT:
+                pygame.quit()
+            elif ev.type == pygame.MOUSEBUTTONDOWN:
+                game.mouse_down(ev.pos)
+            elif ev.type == pygame.MOUSEBUTTONUP:
+                game.mouse_up()
+    except pygame.error:
+        exit()
 
     clock.tick(60)
     surface.fill((0, 0, 0))
@@ -175,7 +212,4 @@ while True:
 
     game.draw()
     pygame.display.flip()
-
-
-    #cheeck for win
     # move counter 
