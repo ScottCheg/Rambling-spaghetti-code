@@ -4,6 +4,7 @@ from tkinter import *
 import tkinter.font as font
 
 root = Tk()
+timePoint = time.time()
 root.geometry('500x180')
 root.title('Ring selection:')
 root.resizable(False, False)
@@ -45,6 +46,8 @@ root.mainloop()
 
 pygame.init()
 surface = pygame.display.set_mode((640, 480))
+my_font = pygame.font.SysFont('consolas', 35)
+small_font = pygame.font.SysFont('consolas', 25)
 clock = pygame.time.Clock()
 surfrect = surface.get_rect()
 
@@ -117,7 +120,7 @@ class Tower():
     def draw_rings(self):
         for ring in self.rings:
             ring.draw()
-
+        
     def test_touch(self, pos):
         if len(self.rings) == 0:
             return None
@@ -134,6 +137,7 @@ class Tower():
         return False
 
 class Game():
+    _moves = 0
     _touched = None
     _palette = [(255,0,0),(0,255,0),(0,0,255),(255,255,0),
                (0,255,255),(255,128,0),(128,255,0),(0,128,255)]
@@ -149,11 +153,28 @@ class Game():
 
         self.towers = [tower1, tower2, tower3]
 
+    def make_text(self, text, y, justification, font):
+        padding = 10
+        text_surface = font.render(text, False, (255, 255, 255))
+        if(justification==RIGHT):
+            x = surfrect.w - text_surface.get_width() - padding
+        elif(justification==CENTER):
+            x = surfrect.w /2 - text_surface.get_width()/2
+        else:
+            x = padding
+        surface.blit(text_surface, (x,y))
+
     def draw(self):
         for tower in self.towers:
             tower.draw()
         for tower in self.towers:
             tower.draw_rings()
+        self.make_text('Moves: ' + str(self._moves), 8, LEFT, small_font)
+
+        currentTime = time.gmtime(time.time() - timePoint)
+        timeStr = time.strftime("%M.%S", currentTime)
+        self.make_text('Timer: ' + timeStr, 8, RIGHT, small_font) #
+        self.make_text('Hanoi', 8, CENTER, my_font)
 
     def remove_ring(self, ring):
         for tower in self.towers:
@@ -178,22 +199,27 @@ class Game():
                         self.remove_ring(self._touched)    
                         tower.add_ring(self._touched)
                         touching = True
+                        self._moves += 1
 
             if not touching:
                 self._touched.cancel_move()
             self._touched = None
 
-        if self.towers[-1].num_rings == numberofrings:
-            theywon()
-
     def loop(self):
         if self._touched is not None:
             self._touched.move(pygame.mouse.get_rel())
+
+    def check_win(self):
+        if game.towers[-1].num_rings == self.num_rings:
+            time.sleep(1)
+            theywon()
+
 try:
     game = Game(numberofrings)
 except NameError:
     exit() 
 
+x=0
 while True:
     try:
         for ev in pygame.event.get():
@@ -203,13 +229,15 @@ while True:
                 game.mouse_down(ev.pos)
             elif ev.type == pygame.MOUSEBUTTONUP:
                 game.mouse_up()
+        clock.tick(100)
+        surface.fill((0, 0, 0))
+        game.loop()
+        game.draw()
+        pygame.display.flip()
+        x+=1
+        game.check_win()
     except pygame.error:
         exit()
-
-    clock.tick(60)
-    surface.fill((0, 0, 0))
-    game.loop()
-
-    game.draw()
-    pygame.display.flip()
-    # move counter 
+        #timer
+        #save score 
+        # retry
