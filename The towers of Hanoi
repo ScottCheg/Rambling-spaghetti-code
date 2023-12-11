@@ -3,65 +3,61 @@ from pygame.locals import *
 from tkinter import *
 import tkinter.font as font
 
-root = Tk()
 timePoint = time.time()
-root.geometry('500x180')
-root.title('Ring selection:')
-root.resizable(False, False)
 palette2 = ['Red','Blue','Green', 'Yellow', 'orange', 'purple']
 
-def on_click(text):
-    global numberofrings
-    numberofrings = text
-    root.destroy()
+class Selection():
+    def __init__(self):
+        self.root = Tk()
 
-def makeButton(xval,yval, text, colour):
-    bgcol = palette2[i]
-    button = Button(root, text = ' '+str(text)+' ', font=('impact',20), command = lambda:  on_click(text), bg = bgcol)
-    button.place(x= xval, y= yval, anchor='center')
+    def on_click(self, text):
+        global numberofrings
+        numberofrings = text
+        self.root.destroy()
 
-myLabel = Label(root, text='Welcome to the Towers of Hanoi,\nHow many rings do you want to start with?:', font=("impact", 20))
-myLabel.pack()
-for i in range(6):
-    makeButton(120+50*i, 120, i+3, i)    
-help = Button(root, text= 'Help', command = lambda: helpme())
-help.place(x =455, y=150)
+    def makeButton(self, xval,yval, text, colour):
+        bgcol = palette2[colour]
+        button = Button(self.root, text = ' '+str(text)+' ', font=('impact',20), command = lambda: self.on_click(text), bg = bgcol)
+        button.place(x= xval, y= yval, anchor='center')
 
-def helpme():
-    roothelp = Tk()
-    roothelp.geometry('1000x140')
-    roothelp.title('Help')
-    roothelp.resizable(False, False)
-    texthelptext = """\n The towers of Hanoi is a puzzle where you must move all the rings on the first tower to the last.
-However: you can only place smaller rings on larger ones, and can only take rings from the top of the tower.
-    """
-    myLabel = Label(roothelp, text=texthelptext, font=('calibri', 15))
-    begin = Button(roothelp, text = ' Begin ', font=('calibri', 15), command = lambda: roothelp.destroy())
-    begin.place(x=500,y=80)
-    myLabel.pack()
+    def helpme(self):
+        roothelp = Tk()
+        roothelp.geometry('1000x140')
+        roothelp.title('Help')
+        roothelp.resizable(False, False)
+        texthelptext = """\nThe towers of Hanoi is a puzzle where you must move all the rings on the first tower to the last.\nHowever: you can only place smaller rings on larger ones, and can only take rings from the top of the tower."""
+        myLabel = Label(roothelp, text=texthelptext, font=('calibri', 15))
+        begin = Button(roothelp, text = ' Begin ', font=('calibri', 15), command = lambda: roothelp.destroy())
+        begin.place(x=500,y=80)
+        myLabel.pack()
 
-root.mainloop()
+    def ring_selction(self):
+        self.root = Tk()
+        self.root.geometry('500x180')
+        self.root.title('Ring selection:')
+        self.root.resizable(False, False)
+        myLabel = Label(self.root, text='Welcome to the Towers of Hanoi,\nHow many rings do you want to start with?:', font=("impact", 20)).pack()
+        for i in range(6):
+            self.makeButton(120+50*i, 120, i+3, i)    
+        help = Button(self.root, text= 'Help', command = lambda: self.helpme()).place(x =455, y=150)
+        self.root.mainloop() 
 
+select = Selection()
+select.ring_selction()
 #########################################
 
 pygame.init()
+start_time = time.time()
 surface = pygame.display.set_mode((640, 480))
 my_font = pygame.font.SysFont('consolas', 35)
 small_font = pygame.font.SysFont('consolas', 25)
 clock = pygame.time.Clock()
 surfrect = surface.get_rect()
 
-def theywon():
-    pygame.quit()
-    root = Tk()
-    root.geometry('960x540')
-    root.title('WOO HOO')
-
-    myLabel = Label(root, text='Congratulations,\n you won!', font=("impact", 50))
-    myLabel.place(y = 150, x = 250)
-    root.resizable(False, False)
-    root.mainloop()
-
+def save_files(time, moves):
+    file = open('Score.txt', 'w')
+    contents = file.read()
+    
 class Ring():
     _before = None
     def __init__(self, size = 1, colour = (0,0,0)):
@@ -137,6 +133,7 @@ class Tower():
         return False
 
 class Game():
+    _elapsed = 0
     _moves = 0
     _touched = None
     _palette = [(255,0,0),(0,255,0),(0,0,255),(255,255,0),
@@ -171,9 +168,9 @@ class Game():
             tower.draw_rings()
         self.make_text('Moves: ' + str(self._moves), 8, LEFT, small_font)
 
-        currentTime = time.gmtime(time.time() - timePoint)
-        timeStr = time.strftime("%M.%S", currentTime)
-        self.make_text('Timer: ' + timeStr, 8, RIGHT, small_font) #
+        self._elapsed = format((time.time() - start_time), '.2f')
+        self.make_text('Timer: ' + self._elapsed, 8, RIGHT, small_font) 
+
         self.make_text('Hanoi', 8, CENTER, my_font)
 
     def remove_ring(self, ring):
@@ -214,12 +211,27 @@ class Game():
             time.sleep(1)
             theywon()
 
+#################################
+
+def theywon():
+    pygame.quit()
+    win_root = Tk()
+    win_root.geometry('960x540')
+    win_root.title('WOO HOO')
+
+    congrats = Label(win_root, text='Congratulations,\n you won!', font=("impact", 50)).place(y = 25, x = 250)
+    time = Label(win_root, text='Time- ' + str(game._elapsed), font=("impact", 30)).place(x = 25, y = 350)
+
+    moves = Label(win_root, text='Moves: ' + str(game._moves), font=("impact", 30)).place(x = 810 - (25*len(str(game._moves))), y = 350)
+
+    win_root.resizable(False, False)
+    win_root.mainloop()
+
 try:
     game = Game(numberofrings)
 except NameError:
     exit() 
 
-x=0
 while True:
     try:
         for ev in pygame.event.get():
@@ -234,10 +246,9 @@ while True:
         game.loop()
         game.draw()
         pygame.display.flip()
-        x+=1
         game.check_win()
     except pygame.error:
         exit()
-        #timer
+
         #save score 
         # retry
